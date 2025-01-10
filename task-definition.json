@@ -1,0 +1,74 @@
+{
+    "family": "invoice-app",
+    "networkMode": "awsvpc",
+    "requiresCompatibilities": ["FARGATE"],
+    "cpu": "1024",
+    "memory": "2048",
+    "containerDefinitions": [
+        {
+            "name": "mongodb",
+            "image": "mongo:latest",
+            "essential": true,
+            "portMappings": [
+                {
+                    "containerPort": 27017,
+                    "protocol": "tcp"
+                }
+            ],
+            "mountPoints": [
+                {
+                    "sourceVolume": "mongodb_data",
+                    "containerPath": "/data/db",
+                    "readOnly": false
+                }
+            ]
+        },
+        {
+            "name": "backend",
+            "image": "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/invoice-app-backend:latest",
+            "essential": true,
+            "portMappings": [
+                {
+                    "containerPort": 5002,
+                    "protocol": "tcp"
+                }
+            ],
+            "environment": [
+                {
+                    "name": "MONGODB_URI",
+                    "value": "mongodb://localhost:27017/invoice-app"
+                },
+                {
+                    "name": "NODE_ENV",
+                    "value": "production"
+                }
+            ],
+            "secrets": [
+                {
+                    "name": "JWT_SECRET",
+                    "valueFrom": "arn:aws:ssm:${AWS_REGION}:${AWS_ACCOUNT_ID}:parameter/invoice-app/jwt-secret"
+                }
+            ]
+        },
+        {
+            "name": "frontend",
+            "image": "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/invoice-app-frontend:latest",
+            "essential": true,
+            "portMappings": [
+                {
+                    "containerPort": 80,
+                    "protocol": "tcp"
+                }
+            ]
+        }
+    ],
+    "volumes": [
+        {
+            "name": "mongodb_data",
+            "efsVolumeConfiguration": {
+                "fileSystemId": "${EFS_ID}",
+                "rootDirectory": "/"
+            }
+        }
+    ]
+}
