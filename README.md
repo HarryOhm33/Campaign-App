@@ -1,178 +1,123 @@
 # Invoice Management Application
 
-A full-stack MERN application for managing invoices with user authentication, PDF generation, and automatic status updates.
+A full-stack MERN application for managing invoices with user authentication, campaign management, and invoice generation.
 
 ## Features
 
-- User authentication with JWT
-- Invoice creation and management
-- Automatic status updates based on due dates
-- PDF invoice generation
-- Profile management
+- User authentication with JWT and secure password hashing
+- Campaign creation and management
+- Invoice generation and tracking
+- Profile management with PAN card verification
 - Responsive Material-UI design
+- Rate limiting and security headers
+- Multi-stage Docker builds for optimized container sizes
 
-## Local Development
-
-### Prerequisites
+## Prerequisites
 
 - Node.js 18+
-- MongoDB
-- Docker and Docker Compose
+- MongoDB 7.0+
+- npm or yarn
 
-### Environment Variables
+## Environment Setup
 
-Create `.env` files in both frontend and backend directories:
-
-Backend `.env`:
+### Backend (.env)
 ```
-MONGODB_URI=mongodb://localhost:27017/invoice-app
+PORT=5000
+MONGODB_URI=mongodb://127.0.0.1:27017/mern-app
 JWT_SECRET=your_jwt_secret
-PORT=5002
 ```
 
-Frontend `.env`:
+### Frontend (.env)
 ```
-REACT_APP_API_URL=http://localhost:5002
-PORT=3003
+REACT_APP_API_URL=http://localhost:5000
 ```
 
-### Running Locally
+## Installation & Setup
 
-1. Start MongoDB:
+1. Clone the repository:
 ```bash
-mongod
+git clone <repository-url>
+cd <repository-name>
 ```
 
-2. Install dependencies and start backend:
+2. Install dependencies:
 ```bash
+# Install backend dependencies
 cd backend
 npm install
+
+# Install frontend dependencies
+cd ../frontend
+npm install
+```
+
+3. Start MongoDB:
+```bash
+# Make sure you have MongoDB installed and running
+mongod --dbpath /path/to/your/data/directory
+```
+
+4. Start the backend server:
+```bash
+cd backend
 npm start
 ```
 
-3. Install dependencies and start frontend:
+5. Start the frontend application:
 ```bash
 cd frontend
-npm install
 npm start
 ```
 
-### Running with Docker Compose
+The application will be available at:
+- Frontend: http://localhost:3001
+- Backend API: http://localhost:5000
+
+## Docker Support
+
+The application includes Docker support with multi-stage builds for both frontend and backend:
 
 ```bash
+# Build and run with Docker Compose
 docker-compose up --build
 ```
 
-## AWS Deployment
+## Security Features
 
-### Prerequisites
+- JWT-based authentication
+- Password hashing with bcrypt
+- Rate limiting for API endpoints
+- Security headers implementation
+- PAN card validation
+- Input validation and sanitization
 
-1. AWS Account with appropriate permissions
-2. AWS CLI installed and configured
-3. GitHub repository with the code
-4. GitHub Actions secrets configured
+## API Endpoints
 
-### Required AWS Resources
+### Authentication
+- POST /auth/register - Register a new user
+- POST /auth/login - User login
+- PUT /auth/change-password - Change password (authenticated)
 
-1. **ECR Repositories:**
-   ```bash
-   aws ecr create-repository --repository-name invoice-app-frontend
-   aws ecr create-repository --repository-name invoice-app-backend
-   ```
+### Campaigns
+- GET /campaigns - List all campaigns
+- POST /campaigns - Create a new campaign
+- PUT /campaigns/:id - Update a campaign
+- DELETE /campaigns/:id - Delete a campaign
 
-2. **ECS Cluster:**
-   ```bash
-   aws ecs create-cluster --cluster-name invoice-app-cluster
-   ```
+### Invoices
+- GET /invoices - List all invoices
+- POST /invoices - Create a new invoice
+- PUT /invoices/:id - Update an invoice
+- DELETE /invoices/:id - Delete an invoice
 
-3. **EFS for MongoDB persistence:**
-   ```bash
-   aws efs create-file-system --performance-mode generalPurpose --throughput-mode bursting
-   ```
+## Contributing
 
-4. **Parameter Store for secrets:**
-   ```bash
-   aws ssm put-parameter --name "/invoice-app/jwt-secret" --value "your-secret" --type SecureString
-   ```
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-### GitHub Actions Setup
+## License
 
-Configure these secrets in your GitHub repository:
-- `AWS_ACCESS_KEY_ID`
-- `AWS_SECRET_ACCESS_KEY`
-
-### Infrastructure Setup
-
-1. Create VPC with public and private subnets
-2. Create ECS Cluster
-3. Create Application Load Balancer
-4. Create ECS Service with Fargate launch type
-5. Create EFS volume for MongoDB persistence
-6. Set up security groups
-
-### Deployment Process
-
-1. Push to main branch triggers GitHub Actions workflow
-2. Workflow builds and pushes Docker images to ECR
-3. Updates ECS task definition with new image tags
-4. Deploys updated task definition to ECS service
-
-### Monitoring
-
-1. Set up CloudWatch for logs and metrics
-2. Create CloudWatch alarms for:
-   - CPU/Memory utilization
-   - Error rates
-   - Response times
-
-### Backup
-
-1. Set up automated MongoDB backups using AWS Backup
-2. Configure backup retention policies
-
-## Security Considerations
-
-1. Use AWS WAF for web application firewall
-2. Enable AWS Shield for DDoS protection
-3. Use AWS Secrets Manager for sensitive data
-4. Implement proper VPC security groups
-5. Use HTTPS only with AWS Certificate Manager
-
-## Scaling
-
-The application is designed to scale horizontally:
-- ECS service auto-scaling based on CPU/Memory
-- MongoDB can be migrated to MongoDB Atlas for better scaling
-- CloudFront for static content delivery
-
-## Maintenance
-
-1. Regular updates:
-   ```bash
-   npm audit fix
-   npm update
-   ```
-
-2. Database maintenance:
-   ```bash
-   mongodump --out /backup/$(date +%Y%m%d)
-   ```
-
-3. Log rotation and cleanup
-
-## Troubleshooting
-
-1. Check ECS service events:
-   ```bash
-   aws ecs describe-services --cluster invoice-app-cluster --services invoice-app-service
-   ```
-
-2. View container logs:
-   ```bash
-   aws logs get-log-events --log-group-name /ecs/invoice-app --log-stream-name container/backend/latest
-   ```
-
-3. Common issues:
-   - MongoDB connection issues: Check security groups
-   - Container health checks failing: Check logs
-   - Deployment failures: Check task definition compatibility
+This project is licensed under the MIT License - see the LICENSE file for details
